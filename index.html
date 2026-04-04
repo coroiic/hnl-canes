@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HNL S45 | Carolina Hurricanes Central</title>
     <style>
-        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); --glass-heavy: rgba(0, 0, 0, 0.85); }
+        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); }
         body { background-color: var(--canes-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; background-image: radial-gradient(circle at top right, #330000 0%, #000000 100%); min-height: 100vh; }
         header { background: linear-gradient(90deg, #000, var(--canes-red)); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--canes-silver); }
         nav { display: flex; background: #111; padding: 0 50px; gap: 10px; border-bottom: 1px solid #333; overflow-x: auto; }
@@ -15,28 +15,17 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .card { background: var(--glass); border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 25px; backdrop-filter: blur(10px); }
-        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; transition: 0.2s; cursor: pointer; }
-        .list-item:hover { background: rgba(204, 0, 0, 0.15); }
-        .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px; }
         h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; margin-bottom: 20px; }
-        .status-bar { background: #cc0000; color: white; text-align: center; font-size: 0.8rem; padding: 5px; display: none; position: fixed; bottom: 0; width: 100%; z-index: 1000; }
-
-        dialog { background: var(--glass-heavy); color: white; border: 1px solid var(--canes-red); border-radius: 15px; padding: 30px; width: 350px; backdrop-filter: blur(20px); box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        dialog::backdrop { background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); }
-        .modal-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .modal-btn { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: white; transition: 0.2s; }
-        .btn-role { background: #444; }
-        .btn-role:hover { background: var(--canes-silver); color: black; }
-        .btn-trade { background: #2980b9; }
-        .btn-trade:hover { background: #3498db; }
-        .btn-cut { background: #c0392b; }
-        .btn-cut:hover { background: #e74c3c; }
-        .btn-close { background: transparent; color: #888; font-size: 0.8rem; margin-top: 10px; }
+        
+        /* Stats Styling */
+        .stats-grid { display: flex; gap: 15px; font-size: 0.85rem; color: var(--canes-silver); }
+        .stat-val { color: white; font-weight: bold; margin-left: 3px; }
+        .player-info { display: flex; align-items: center; }
     </style>
 </head>
 <body>
-
-<div id="saveStatus" class="status-bar">Syncing with GitHub...</div>
 
 <header>
     <div><h1 style="margin:0;">CAROLINA <span style="color:var(--canes-silver)">HURRICANES</span></h1><small>HNL SEASON 45 HUB</small></div>
@@ -44,7 +33,7 @@
 
 <nav id="navbar">
     <button onclick="showTab('scores')" id="btn-scores" class="active">Scores</button>
-    <button onclick="showTab('roster')" id="btn-roster">Roster & Lines</button>
+    <button onclick="showTab('roster')" id="btn-roster">Roster & Stats</button>
     <button onclick="showTab('trades')" id="btn-trades">Trades</button>
     <button onclick="showTab('news')" id="btn-news">News</button>
 </nav>
@@ -62,7 +51,7 @@
             <p><strong>2ND:</strong> <span id="l2" style="color:var(--canes-silver)"></span></p>
             <p><strong>G:</strong> <span id="lg" style="color:var(--canes-silver)"></span></p>
         </div>
-        <h2>Active Roster</h2>
+        <h2>Player Stats</h2>
         <div id="rosterList" class="card"></div>
     </section>
 
@@ -77,33 +66,16 @@
     </section>
 </div>
 
-<dialog id="playerModal">
-    <div class="modal-header">
-        <h3 id="modalPlayerName" style="margin:0;">Player Name</h3>
-        <small id="modalPlayerPos" style="color: var(--canes-silver);">Position</small>
-    </div>
-    <button class="modal-btn btn-role" onclick="updateRole('[C]')">Assign Captain [C]</button>
-    <button class="modal-btn btn-role" onclick="updateRole('[AC]')">Assign Alternate [AC]</button>
-    <button class="modal-btn btn-role" onclick="updateRole('')">Remove Roles</button>
-    <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
-    <button class="modal-btn btn-trade" onclick="triggerTrade()">Trade Player</button>
-    <button class="modal-btn btn-cut" onclick="triggerCut()">Cut Player</button>
-    <button class="modal-btn btn-close" onclick="document.getElementById('playerModal').close()">Cancel</button>
-</dialog>
-
 <script>
     /* ---------------------------------------------------------
-       ADMIN CONFIG
+       ADMIN: EDIT YOUR DATA HERE
     --------------------------------------------------------- */
-    const GITHUB_CONFIG = {
-        owner: "coroiic",
-        repo: "hnl-canes",
-        path: "index.html",
-        branch: "main"
-    };
-
-    let TEAM_DATA = {
-        lines: { first: "Rowblox_Lols - LucaskFortnite", second: "Kreid - AlbertV05", goalie: "Coroiic" },
+    const TEAM_DATA = {
+        lines: { 
+            first: "Rowblox_Lols - LucaskFortnite", 
+            second: "Kreid - AlbertV05", 
+            goalie: "Coroiic" 
+        },
         scores: [
             { opp: "WSH Capitals", res: "1-0 W" },
             { opp: "PIT Penguins", res: "5-1 L" },
@@ -111,180 +83,88 @@
             { opp: "NY Rangers", res: "5-1 L" }
         ],
         roster: [
-            { name: "Coroiic [C] ", pos: "G" },
-            { name: "Rowblox_Lols [AC]", pos: "C" },
-            { name: "LucaskFortnite [AC]", pos: "W" },
-            { name: "TTV_Demolisher", pos: "D" },
-            { name: "Lobsty", pos: "D" },
-            { name: "Kreid", pos: "C" },
-            { name: "AlbertV05", pos: "W" },
-            { name: "CrusaderPenguin", pos: "D" },
-            { name: "KevvyFr", pos: "D" }, 
-            { name: "crabbyNT", pos: "C" }
+            // GOALIE STATS: Use gaa, sv, and rec
+            { name: "Coroiic [C]", pos: "G", gaa: "0.00", sv: "1.000", rec: "0-0-0" },
+            
+            // PLAYER STATS: Use g, a, pts, blk
+            { name: "Rowblox_Lols [AC]", pos: "C", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "LucaskFortnite [AC]", pos: "W", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "TTV_Demolisher", pos: "D", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "Lobsty", pos: "D", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "Kreid", pos: "C", g: 0, a: 0, pts: 1, blk: 0 },
+            { name: "AlbertV05", pos: "W", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "CrusaderPenguin", pos: "D", g: 0, a: 0, pts: 0, blk: 0 },
+            { name: "KevvyFr", pos: "D", g: 0, a: 0, pts: 0, blk: 0 }, 
+            { name: "crabbyNT", pos: "C", g: 0, a: 0, pts: 0, blk: 0 }
         ],
-        trades: ["🚨 No trades to report yet."],
-        news: [{ h: "S45 Hub Live", b: "The official Hurricanes HNL hub is now online." }]
+        trades: [ "🚨 No trades to report yet." ],
+        news: [ { h: "S45 Hub Live", b: "The official Hurricanes HNL hub is now online." } ]
     };
 
-    let selectedPlayerIndex = null;
-
     /* ---------------------------------------------------------
-       LINE CLEANING LOGIC
-    --------------------------------------------------------- */
-    function removeFromLines(rawName) {
-        // Strip [C] and [AC] and trim whitespace
-        const cleanName = rawName.replace(/\[C\]|\[AC\]/g, "").trim().toLowerCase();
-        
-        Object.keys(TEAM_DATA.lines).forEach(key => {
-            let lineText = TEAM_DATA.lines[key];
-            
-            // Split the line by " - " to check individual players
-            let playersOnLine = lineText.split(" - ");
-            
-            // Filter out the player that matches the cleanName (case insensitive)
-            let updatedPlayers = playersOnLine.filter(p => p.trim().toLowerCase() !== cleanName);
-            
-            // Rejoin them. If empty, set to "TBD"
-            TEAM_DATA.lines[key] = updatedPlayers.join(" - ") || "TBD";
-        });
-        
-        renderLines();
-    }
-
-    /* ---------------------------------------------------------
-       CORE FUNCTIONS
-    --------------------------------------------------------- */
-    function openPlayerActions(index) {
-        selectedPlayerIndex = index;
-        const player = TEAM_DATA.roster[index];
-        document.getElementById('modalPlayerName').innerText = player.name;
-        document.getElementById('modalPlayerPos').innerText = `Position: ${player.pos}`;
-        document.getElementById('playerModal').showModal();
-    }
-
-    function updateRole(tag) {
-        let name = TEAM_DATA.roster[selectedPlayerIndex].name;
-        name = name.replace(/\[C\]|\[AC\]/g, "").trim();
-        TEAM_DATA.roster[selectedPlayerIndex].name = tag ? `${name} ${tag}` : name;
-        finishAction("Role Updated");
-    }
-
-    function triggerTrade() {
-        const player = TEAM_DATA.roster[selectedPlayerIndex];
-        if (confirm(`Move ${player.name} to the Trade Log?`)) {
-            removeFromLines(player.name); // Remove from lines first
-            TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
-            if (TEAM_DATA.trades[0].includes("🚨")) TEAM_DATA.trades = [];
-            TEAM_DATA.trades.unshift(`🔄 TRADE: ${player.name} (${player.pos}) has been moved.`);
-            finishAction("Player Traded");
-        }
-    }
-
-    function triggerCut() {
-        const code = prompt("Enter GM Code (999JUICEWRLD) to confirm cut:");
-        if (code === "999JUICEWRLD") {
-            const player = TEAM_DATA.roster[selectedPlayerIndex];
-            removeFromLines(player.name); // Remove from lines first
-            TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
-            finishAction(`${player.name} Released`);
-        } else if (code !== null) {
-            alert("Invalid Code.");
-        }
-    }
-
-    function finishAction(msg) {
-        document.getElementById('playerModal').close();
-        renderRoster();
-        renderTrades();
-        saveToGitHub();
-    }
-
-    /* ---------------------------------------------------------
-       GITHUB SYNC
-    --------------------------------------------------------- */
-    async function saveToGitHub() {
-        const token = prompt("Syncing changes... Enter GitHub Token:");
-        if (!token) return;
-
-        const statusEl = document.getElementById('saveStatus');
-        statusEl.style.display = 'block';
-
-        try {
-            const getUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
-            const response = await fetch(getUrl);
-            const fileData = await response.json();
-            const sha = fileData.sha;
-
-            let currentHTML = decodeURIComponent(escape(atob(fileData.content)));
-            const dataRegex = /let TEAM_DATA = \{[\s\S]*?\};/;
-            const newDataString = `let TEAM_DATA = ${JSON.stringify(TEAM_DATA, null, 4)};`;
-            const updatedHTML = currentHTML.replace(dataRegex, newDataString);
-
-            const putResponse = await fetch(getUrl, {
-                method: 'PUT',
-                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: "GM Action: Roster/Lines Updated",
-                    content: btoa(unescape(encodeURIComponent(updatedHTML))),
-                    sha: sha,
-                    branch: GITHUB_CONFIG.branch
-                })
-            });
-
-            if (putResponse.ok) alert("GitHub Updated Successfully!");
-            else throw new Error("Sync Failed");
-        } catch (error) {
-            alert("Error: " + error.message);
-        } finally {
-            statusEl.style.display = 'none';
-        }
-    }
-
-    /* ---------------------------------------------------------
-       UI RENDERING
+       CORE LOGIC
     --------------------------------------------------------- */
     function showTab(id) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        const tabs = document.getElementsByClassName('tab-content');
+        const buttons = document.querySelectorAll('nav button');
+        for (let i = 0; i < tabs.length; i++) { tabs[i].classList.remove('active'); }
+        for (let i = 0; i < buttons.length; i++) { buttons[i].classList.remove('active'); }
         document.getElementById(id).classList.add('active');
         document.getElementById('btn-' + id).classList.add('active');
     }
 
-    function renderLines() {
+    function init() {
         document.getElementById('l1').innerText = TEAM_DATA.lines.first;
         document.getElementById('l2').innerText = TEAM_DATA.lines.second;
         document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
-    }
 
-    function renderRoster() {
-        const rList = document.getElementById('rosterList');
-        rList.innerHTML = "";
-        TEAM_DATA.roster.forEach((r, index) => {
-            rList.innerHTML += `
-                <div class="list-item" onclick="openPlayerActions(${index})">
-                    <span>${r.name}</span>
-                    <span class="tag">${r.pos}</span>
-                </div>`;
-        });
-    }
-
-    function renderTrades() {
-        const tList = document.getElementById('tradesList');
-        tList.innerHTML = "";
-        TEAM_DATA.trades.forEach(t => {
-            tList.innerHTML += `<div class="list-item">${t}</div>`;
-        });
-    }
-
-    function init() {
-        renderLines();
+        // Scores
         const sList = document.getElementById('scoresList');
         sList.innerHTML = "";
         TEAM_DATA.scores.forEach(s => {
             sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`;
         });
-        renderRoster();
-        renderTrades();
+
+        // Roster & Stats Logic
+        const rList = document.getElementById('rosterList');
+        rList.innerHTML = "";
+        TEAM_DATA.roster.forEach(r => {
+            let statsHtml = "";
+            
+            if (r.pos === "G") {
+                // Template for Goalie Stats
+                statsHtml = `
+                    <div class="stats-grid">
+                        <span>GAA: <span class="stat-val">${r.gaa || '0.00'}</span></span>
+                        <span>SV%: <span class="stat-val">${r.sv || '.000'}</span></span>
+                        <span>REC: <span class="stat-val">${r.rec || '0-0-0'}</span></span>
+                    </div>`;
+            } else {
+                // Template for Skater Stats
+                statsHtml = `
+                    <div class="stats-grid">
+                        <span>G: <span class="stat-val">${r.g || 0}</span></span>
+                        <span>A: <span class="stat-val">${r.a || 0}</span></span>
+                        <span>P: <span class="stat-val">${r.pts || 0}</span></span>
+                        <span>BLK: <span class="stat-val">${r.blk || 0}</span></span>
+                    </div>`;
+            }
+
+            rList.innerHTML += `
+                <div class="list-item">
+                    <div class="player-info">
+                        <strong>${r.name}</strong> <span class="tag">${r.pos}</span>
+                    </div>
+                    ${statsHtml}
+                </div>`;
+        });
+
+        // Trades
+        const tList = document.getElementById('tradesList');
+        tList.innerHTML = "";
+        TEAM_DATA.trades.forEach(t => { tList.innerHTML += `<div class="list-item">${t}</div>`; });
+
+        // News
         const nList = document.getElementById('newsList');
         nList.innerHTML = "";
         TEAM_DATA.news.forEach(n => {
