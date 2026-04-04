@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HNL S45 | Carolina Hurricanes Central</title>
+    <style>
+        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); }
+        body { background-color: var(--canes-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; background-image: radial-gradient(circle at top right, #330000 0%, #000000 100%); min-height: 100vh; }
+        header { background: linear-gradient(90deg, #000, var(--canes-red)); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--canes-silver); }
+        nav { display: flex; background: #111; padding: 0 50px; gap: 10px; border-bottom: 1px solid #333; }
+        nav button { background: none; border: none; color: var(--canes-silver); cursor: pointer; font-weight: bold; text-transform: uppercase; padding: 15px 20px; transition: 0.3s; }
+        nav button.active { color: var(--canes-red); border-bottom: 3px solid var(--canes-red); background: rgba(204, 0, 0, 0.1); }
+        .container { padding: 30px 50px; max-width: 1200px; margin: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background: var(--glass); border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 25px; backdrop-filter: blur(10px); }
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
+        h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><h1>CAROLINA <span style="color:var(--canes-silver)">HURRICANES</span></h1><small>HNL S45 HUB</small></div>
+</header>
+
+<nav>
+    <button onclick="showTab('scores')" id="btn-scores" class="active">Scores</button>
+    <button onclick="showTab('roster')" id="btn-roster">Roster & Lines</button>
+    <button onclick="showTab('trades')" id="btn-trades">Trades</button>
+    <button onclick="showTab('news')" id="btn-news">News</button>
+</nav>
+
+<div class="container">
+    <section id="scores" class="tab-content active">
+        <h2>Season Results</h2>
+        <div id="scoresList" class="card"></div>
+    </section>
+
+    <section id="roster" class="tab-content">
+        <h2>Gameday Lines</h2>
+        <div class="card" style="border-left: 6px solid var(--canes-red);">
+            <p><strong>1ST:</strong> <span id="l1"></span></p>
+            <p><strong>2ND:</strong> <span id="l2"></span></p>
+            <p><strong>G:</strong> <span id="lg"></span></p>
+        </div>
+        <h2>Active Roster</h2>
+        <div id="rosterList" class="card"></div>
+    </section>
+
+    <section id="trades" class="tab-content">
+        <h2>Trade Log</h2>
+        <div id="tradesList" class="card"></div>
+    </section>
+
+    <section id="news" class="tab-content">
+        <h2>Team News</h2>
+        <div id="newsList"></div>
+    </section>
+</div>
+
+<script>
+    /* ---------------------------------------------------------
+       ADMIN: EDIT YOUR TEAM DATA BELOW THIS LINE
+    --------------------------------------------------------- */
+    
+    const TEAM_DATA = {
+        lines: { 
+            first: "Lucas - Rowblox - TTV_Demolisher", 
+            second: " Kreid - Polisius - Kevvy", 
+            goalie: "Coroiic" 
+        },
+        scores: [
+          { opp: "WSH Capitals", res: 1-0 W},
+          { opp: "PIT Penguins", res: 5-1 L},
+          { opp: "OTT Senators", res: "4-0 L" },
+            { opp: "NY Rangers", res: "5-1 L" }
+        ],
+        roster: [
+            { name: "Rowblox_Lols [AC] ", pos: "C" },
+            { name: "LucaskFortnite [AC] ", pos: "W" },
+            { name: "TTV_Demolisher ", pos: "D" },
+            { name: "Lobsty", pos: "D" },
+            { name: "Kreid" , pos: "C" },
+            { name: "AlbertV05", pos: "W" },
+            { name: "Kreid", pos: "W" },
+            { name: "Henreek", pos: "C" },
+            { name: "CrusaderPenguin", pos: "D" },
+            { name: "KevvyFr", pos: "D" }, 
+            { name: "crabbyNT", pos: "C" }
+        ],
+        trades: [
+            "🚨 Acquired 2 2nd round picks for players Spenncer, Tobbydog!"
+        ],
+        news: [
+            { h: "Season Opener", b: "Canes start S45 with a massive win over WSH" }
+        ]
+    };
+
+    /* ---------------------------------------------------------
+       DO NOT EDIT BELOW UNLESS YOU KNOW CODE
+    --------------------------------------------------------- */
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('btn-'+id).classList.add('active');
+    }
+
+    function init() {
+        // Load Lines
+        document.getElementById('l1').innerText = TEAM_DATA.lines.first;
+        document.getElementById('l2').innerText = TEAM_DATA.lines.second;
+        document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
+
+        // Load Lists
+        TEAM_DATA.scores.forEach(s => document.getElementById('scoresList').innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`);
+        TEAM_DATA.roster.forEach(r => document.getElementById('rosterList').innerHTML += `<div class="list-item"><span>${r.name}</span><span class="tag">${r.pos}</span></div>`);
+        TEAM_DATA.trades.forEach(t => document.getElementById('tradesList').innerHTML += `<div class="list-item">${t}</div>`);
+        TEAM_DATA.news.forEach(n => document.getElementById('newsList').innerHTML += `<div class="card"><h3>${n.h}</h3><p>${n.b}</p></div>`);
+    }
+    init();
+</script>
+</body>
+</html>
