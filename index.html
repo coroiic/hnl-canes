@@ -109,6 +109,34 @@
         document.getElementById('btn-' + id).classList.add('active');
     }
 
+    // Renders the roster and makes players clickable
+    function renderRoster() {
+        const rList = document.getElementById('rosterList');
+        rList.innerHTML = "";
+        
+        TEAM_DATA.roster.forEach((r, index) => {
+            rList.innerHTML += `
+                <div class="list-item" style="cursor: pointer; transition: background 0.2s;" onclick="cutPlayer(${index})" onmouseover="this.style.backgroundColor='rgba(204,0,0,0.2)'" onmouseout="this.style.backgroundColor='transparent'" title="Click to cut ${r.name}">
+                    <span>${r.name}</span>
+                    <span class="tag">${r.pos}</span>
+                </div>`;
+        });
+    }
+
+    // Handles the cut code logic
+    function cutPlayer(index) {
+        const player = TEAM_DATA.roster[index];
+        const code = prompt(`WARNING: You are about to cut ${player.name}.\n\nEnter GM authorization code to proceed:`);
+
+        if (code === "999JUICEWRLD") {
+            TEAM_DATA.roster.splice(index, 1);
+            alert(`SUCCESS: ${player.name} has been released from the roster.`);
+            renderRoster(); // Updates the screen immediately
+        } else if (code !== null) {
+            alert("ERROR: Invalid authorization code. Action denied.");
+        }
+    }
+
     function init() {
         document.getElementById('l1').innerText = TEAM_DATA.lines.first;
         document.getElementById('l2').innerText = TEAM_DATA.lines.second;
@@ -120,11 +148,7 @@
             sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`;
         });
 
-        const rList = document.getElementById('rosterList');
-        rList.innerHTML = "";
-        TEAM_DATA.roster.forEach(r => {
-            rList.innerHTML += `<div class="list-item"><span>${r.name}</span><span class="tag">${r.pos}</span></div>`;
-        });
+        renderRoster();
 
         const tList = document.getElementById('tradesList');
         tList.innerHTML = "";
