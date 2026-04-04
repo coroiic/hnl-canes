@@ -21,7 +21,6 @@
         h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; margin-bottom: 20px; }
         .status-bar { background: #cc0000; color: white; text-align: center; font-size: 0.8rem; padding: 5px; display: none; position: fixed; bottom: 0; width: 100%; z-index: 1000; }
 
-        /* MODAL STYLES */
         dialog { background: var(--glass-heavy); color: white; border: 1px solid var(--canes-red); border-radius: 15px; padding: 30px; width: 350px; backdrop-filter: blur(20px); box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         dialog::backdrop { background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); }
         .modal-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -104,79 +103,53 @@
     };
 
     let TEAM_DATA = {
-    "lines": {
-        "first": "Rowblox_Lols - LucaskFortnite",
-        "second": "Kreid - AlbertV05",
-        "goalie": "Coroiic"
-    },
-    "scores": [
-        {
-            "opp": "WSH Capitals",
-            "res": "1-0 W"
-        },
-        {
-            "opp": "PIT Penguins",
-            "res": "5-1 L"
-        },
-        {
-            "opp": "OTT Senators",
-            "res": "4-0 L"
-        },
-        {
-            "opp": "NY Rangers",
-            "res": "5-1 L"
-        }
-    ],
-    "roster": [
-        {
-            "name": "Coroiic [C] ",
-            "pos": "G"
-        },
-        {
-            "name": "LucaskFortnite [AC]",
-            "pos": "W"
-        },
-        {
-            "name": "TTV_Demolisher",
-            "pos": "D"
-        },
-        {
-            "name": "Lobsty",
-            "pos": "D"
-        },
-        {
-            "name": "Kreid",
-            "pos": "C"
-        },
-        {
-            "name": "AlbertV05",
-            "pos": "W"
-        },
-        {
-            "name": "CrusaderPenguin",
-            "pos": "D"
-        },
-        {
-            "name": "KevvyFr",
-            "pos": "D"
-        },
-        {
-            "name": "crabbyNT",
-            "pos": "C"
-        }
-    ],
-    "trades": [
-        "🚨 No trades to report yet."
-    ],
-    "news": [
-        {
-            "h": "S45 Hub Live",
-            "b": "The official Hurricanes HNL hub is now online."
-        }
-    ]
-};
+        lines: { first: "Rowblox_Lols - LucaskFortnite", second: "Kreid - AlbertV05", goalie: "TBD" },
+        scores: [
+            { opp: "WSH Capitals", res: "1-0 W" },
+            { opp: "PIT Penguins", res: "5-1 L" },
+            { opp: "OTT Senators", res: "4-0 L" },
+            { opp: "NY Rangers", res: "5-1 L" }
+        ],
+        roster: [
+            { name: "Coroiic [C] ", pos: "G" },
+            { name: "Rowblox_Lols [AC]", pos: "C" },
+            { name: "LucaskFortnite [AC]", pos: "W" },
+            { name: "TTV_Demolisher", pos: "D" },
+            { name: "Lobsty", pos: "D" },
+            { name: "Kreid", pos: "C" },
+            { name: "AlbertV05", pos: "W" },
+            { name: "CrusaderPenguin", pos: "D" },
+            { name: "KevvyFr", pos: "D" }, 
+            { name: "crabbyNT", pos: "C" }
+        ],
+        trades: ["🚨 No trades to report yet."],
+        news: [{ h: "S45 Hub Live", b: "The official Hurricanes HNL hub is now online." }]
+    };
 
     let selectedPlayerIndex = null;
+
+    /* ---------------------------------------------------------
+       LINE CLEANING LOGIC
+    --------------------------------------------------------- */
+    function removeFromLines(rawName) {
+        // Strip [C] and [AC] and trim whitespace
+        const cleanName = rawName.replace(/\[C\]|\[AC\]/g, "").trim().toLowerCase();
+        
+        Object.keys(TEAM_DATA.lines).forEach(key => {
+            let lineText = TEAM_DATA.lines[key];
+            
+            // Split the line by " - " to check individual players
+            let playersOnLine = lineText.split(" - ");
+            
+            // Filter out the player that matches the cleanName (case insensitive)
+            let updatedPlayers = playersOnLine.filter(p => p.trim().toLowerCase() !== cleanName);
+            
+            // Rejoin them. If empty, set to "TBD"
+            TEAM_DATA.lines[key] = updatedPlayers.join(" - ") || "TBD";
+        });
+        
+        renderLines();
+    }
 
     /* ---------------------------------------------------------
        CORE FUNCTIONS
@@ -189,34 +162,29 @@
         document.getElementById('playerModal').showModal();
     }
 
-    // Role Logic
     function updateRole(tag) {
         let name = TEAM_DATA.roster[selectedPlayerIndex].name;
-        // Clean existing tags
         name = name.replace(/\[C\]|\[AC\]/g, "").trim();
-        // Add new tag if provided
         TEAM_DATA.roster[selectedPlayerIndex].name = tag ? `${name} ${tag}` : name;
         finishAction("Role Updated");
     }
 
-    // Trade Logic
     function triggerTrade() {
         const player = TEAM_DATA.roster[selectedPlayerIndex];
         if (confirm(`Move ${player.name} to the Trade Log?`)) {
-            // Remove from roster
+            removeFromLines(player.name); // Remove from lines first
             TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
-            // Add to trades (remove placeholder if first trade)
             if (TEAM_DATA.trades[0].includes("🚨")) TEAM_DATA.trades = [];
             TEAM_DATA.trades.unshift(`🔄 TRADE: ${player.name} (${player.pos}) has been moved.`);
             finishAction("Player Traded");
         }
     }
 
-    // Cut Logic
     function triggerCut() {
         const code = prompt("Enter GM Code (999JUICEWRLD) to confirm cut:");
         if (code === "999JUICEWRLD") {
             const player = TEAM_DATA.roster[selectedPlayerIndex];
+            removeFromLines(player.name); // Remove from lines first
             TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
             finishAction(`${player.name} Released`);
         } else if (code !== null) {
@@ -227,7 +195,7 @@
     function finishAction(msg) {
         document.getElementById('playerModal').close();
         renderRoster();
-        renderTrades(); // Update trades tab too
+        renderTrades();
         saveToGitHub();
     }
 
@@ -256,7 +224,7 @@
                 method: 'PUT',
                 headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: "GM Action: Roster Updated",
+                    message: "GM Action: Roster/Lines Updated",
                     content: btoa(unescape(encodeURIComponent(updatedHTML))),
                     sha: sha,
                     branch: GITHUB_CONFIG.branch
@@ -282,6 +250,12 @@
         document.getElementById('btn-' + id).classList.add('active');
     }
 
+    function renderLines() {
+        document.getElementById('l1').innerText = TEAM_DATA.lines.first;
+        document.getElementById('l2').innerText = TEAM_DATA.lines.second;
+        document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
+    }
+
     function renderRoster() {
         const rList = document.getElementById('rosterList');
         rList.innerHTML = "";
@@ -303,9 +277,7 @@
     }
 
     function init() {
-        document.getElementById('l1').innerText = TEAM_DATA.lines.first;
-        document.getElementById('l2').innerText = TEAM_DATA.lines.second;
-        document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
+        renderLines();
         const sList = document.getElementById('scoresList');
         sList.innerHTML = "";
         TEAM_DATA.scores.forEach(s => {
