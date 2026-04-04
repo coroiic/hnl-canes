@@ -1,3 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HNL S45 | Carolina Hurricanes Central</title>
+    <style>
+        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); }
+        body { background-color: var(--canes-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; background-image: radial-gradient(circle at top right, #330000 0%, #000000 100%); min-height: 100vh; }
+        header { background: linear-gradient(90deg, #000, var(--canes-red)); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--canes-silver); }
+        nav { display: flex; background: #111; padding: 0 50px; gap: 10px; border-bottom: 1px solid #333; overflow-x: auto; }
+        nav button { background: none; border: none; color: var(--canes-silver); cursor: pointer; font-weight: bold; text-transform: uppercase; padding: 15px 20px; transition: 0.3s; font-size: 1rem; white-space: nowrap; }
+        nav button.active { color: var(--canes-red); border-bottom: 3px solid var(--canes-red); background: rgba(204, 0, 0, 0.1); }
+        .container { padding: 30px 50px; max-width: 1200px; margin: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background: var(--glass); border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 25px; backdrop-filter: blur(10px); }
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><h1 style="margin:0;">CAROLINA <span style="color:var(--canes-silver)">HURRICANES</span></h1><small>HNL SEASON 45 HUB</small></div>
+</header>
+
+<nav id="navbar">
+    <button onclick="showTab('scores')" id="btn-scores" class="active">Scores</button>
+    <button onclick="showTab('roster')" id="btn-roster">Roster & Lines</button>
+    <button onclick="showTab('trades')" id="btn-trades">Trades</button>
+    <button onclick="showTab('news')" id="btn-news">News</button>
+</nav>
+
+<div class="container">
+    <section id="scores" class="tab-content active">
+        <h2>Season Results</h2>
+        <div id="scoresList" class="card"></div>
+    </section>
+
+    <section id="roster" class="tab-content">
+        <h2>Gameday Lines</h2>
+        <div class="card" style="border-left: 6px solid var(--canes-red);">
+            <p><strong>1ST:</strong> <span id="l1" style="color:var(--canes-silver)"></span></p>
+            <p><strong>2ND:</strong> <span id="l2" style="color:var(--canes-silver)"></span></p>
+            <p><strong>G:</strong> <span id="lg" style="color:var(--canes-silver)"></span></p>
+        </div>
+        <h2>Active Roster</h2>
+        <div id="rosterList" class="card"></div>
+    </section>
+
+    <section id="trades" class="tab-content">
+        <h2>Trade Log</h2>
+        <div id="tradesList" class="card"></div>
+    </section>
+
+    <section id="news" class="tab-content">
+        <h2>Team News</h2>
+        <div id="newsList"></div>
+    </section>
+</div>
+
 <script>
     /* ---------------------------------------------------------
        ADMIN: EDIT YOUR DATA HERE
@@ -46,62 +109,29 @@
         document.getElementById('btn-' + id).classList.add('active');
     }
 
-    // New function specifically to render the roster so we can update it dynamically
-    function renderRoster() {
-        const rList = document.getElementById('rosterList');
-        rList.innerHTML = "";
-        
-        // We pass the 'index' to the cutPlayer function so it knows exactly who to remove
-        TEAM_DATA.roster.forEach((r, index) => {
-            rList.innerHTML += `
-                <div class="list-item" style="cursor: pointer; transition: background 0.2s;" onclick="cutPlayer(${index})" onmouseover="this.style.backgroundColor='rgba(204,0,0,0.2)'" onmouseout="this.style.backgroundColor='transparent'" title="Click to cut ${r.name}">
-                    <span>${r.name}</span>
-                    <span class="tag">${r.pos}</span>
-                </div>`;
-        });
-    }
-
-    // New function to handle the cutting logic
-    function cutPlayer(index) {
-        const player = TEAM_DATA.roster[index];
-        const code = prompt(`WARNING: You are about to cut ${player.name}.\n\nEnter GM authorization code to proceed:`);
-
-        if (code === "999JUICEWRLD") {
-            // Remove 1 element at the specific index
-            TEAM_DATA.roster.splice(index, 1);
-            alert(`SUCCESS: ${player.name} has been released from the roster.`);
-            // Re-render the list to show the updated roster
-            renderRoster();
-        } else if (code !== null) {
-            // If they typed something wrong (and didn't just hit cancel)
-            alert("ERROR: Invalid authorization code. Action denied.");
-        }
-    }
-
     function init() {
-        // Load Lines
         document.getElementById('l1').innerText = TEAM_DATA.lines.first;
         document.getElementById('l2').innerText = TEAM_DATA.lines.second;
         document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
 
-        // Load Scores
         const sList = document.getElementById('scoresList');
         sList.innerHTML = "";
         TEAM_DATA.scores.forEach(s => {
             sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`;
         });
 
-        // Load Roster (using our new function)
-        renderRoster();
+        const rList = document.getElementById('rosterList');
+        rList.innerHTML = "";
+        TEAM_DATA.roster.forEach(r => {
+            rList.innerHTML += `<div class="list-item"><span>${r.name}</span><span class="tag">${r.pos}</span></div>`;
+        });
 
-        // Load Trades
         const tList = document.getElementById('tradesList');
         tList.innerHTML = "";
         TEAM_DATA.trades.forEach(t => {
             tList.innerHTML += `<div class="list-item">${t}</div>`;
         });
 
-        // Load News
         const nList = document.getElementById('newsList');
         nList.innerHTML = "";
         TEAM_DATA.news.forEach(n => {
@@ -111,3 +141,5 @@
 
     init();
 </script>
+</body>
+</html>
