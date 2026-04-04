@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HNL S45 | Carolina Hurricanes Central</title>
     <style>
-        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); }
+        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); --glass-heavy: rgba(0, 0, 0, 0.85); }
         body { background-color: var(--canes-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; background-image: radial-gradient(circle at top right, #330000 0%, #000000 100%); min-height: 100vh; }
         header { background: linear-gradient(90deg, #000, var(--canes-red)); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--canes-silver); }
         nav { display: flex; background: #111; padding: 0 50px; gap: 10px; border-bottom: 1px solid #333; overflow-x: auto; }
@@ -15,18 +15,32 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .card { background: var(--glass); border: 1px solid #333; padding: 25px; border-radius: 12px; margin-bottom: 25px; backdrop-filter: blur(10px); }
-        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; transition: 0.2s; cursor: pointer; }
+        .list-item:hover { background: rgba(204, 0, 0, 0.15); }
         .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; margin-bottom: 20px; }
-        .status-bar { background: #cc0000; color: white; text-align: center; font-size: 0.8rem; padding: 5px; display: none; position: fixed; bottom: 0; width: 100%; z-index: 100; }
+        .status-bar { background: #cc0000; color: white; text-align: center; font-size: 0.8rem; padding: 5px; display: none; position: fixed; bottom: 0; width: 100%; z-index: 1000; }
+
+        /* MODAL STYLES */
+        dialog { background: var(--glass-heavy); color: white; border: 1px solid var(--canes-red); border-radius: 15px; padding: 30px; width: 350px; backdrop-filter: blur(20px); box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        dialog::backdrop { background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); }
+        .modal-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-btn { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: white; transition: 0.2s; }
+        .btn-role { background: #444; }
+        .btn-role:hover { background: var(--canes-silver); color: black; }
+        .btn-trade { background: #2980b9; }
+        .btn-trade:hover { background: #3498db; }
+        .btn-cut { background: #c0392b; }
+        .btn-cut:hover { background: #e74c3c; }
+        .btn-close { background: transparent; color: #888; font-size: 0.8rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div id="saveStatus" class="status-bar">Updating GitHub... Please wait...</div>
+<div id="saveStatus" class="status-bar">Syncing with GitHub...</div>
 
 <header>
-    <div><h1 style="margin:0;">CAROLINA <span style="color:var(--canes-silver)">HURRICANES</span></h1><small id="sub-header">HNL SEASON 45 HUB</small></div>
+    <div><h1 style="margin:0;">CAROLINA <span style="color:var(--canes-silver)">HURRICANES</span></h1><small>HNL SEASON 45 HUB</small></div>
 </header>
 
 <nav id="navbar">
@@ -50,7 +64,6 @@
             <p><strong>G:</strong> <span id="lg" style="color:var(--canes-silver)"></span></p>
         </div>
         <h2>Active Roster</h2>
-        <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">(Admin: Click a player to cut them from the team)</p>
         <div id="rosterList" class="card"></div>
     </section>
 
@@ -65,22 +78,33 @@
     </section>
 </div>
 
+<dialog id="playerModal">
+    <div class="modal-header">
+        <h3 id="modalPlayerName" style="margin:0;">Player Name</h3>
+        <small id="modalPlayerPos" style="color: var(--canes-silver);">Position</small>
+    </div>
+    <button class="modal-btn btn-role" onclick="updateRole('[C]')">Assign Captain [C]</button>
+    <button class="modal-btn btn-role" onclick="updateRole('[AC]')">Assign Alternate [AC]</button>
+    <button class="modal-btn btn-role" onclick="updateRole('')">Remove Roles</button>
+    <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
+    <button class="modal-btn btn-trade" onclick="triggerTrade()">Trade Player</button>
+    <button class="modal-btn btn-cut" onclick="triggerCut()">Cut Player</button>
+    <button class="modal-btn btn-close" onclick="document.getElementById('playerModal').close()">Cancel</button>
+</dialog>
+
 <script>
     /* ---------------------------------------------------------
-       ADMIN: GITHUB SETTINGS
+       ADMIN CONFIG
     --------------------------------------------------------- */
     const GITHUB_CONFIG = {
-        owner: "coroiic", // Change this!
-        repo: "hnl-canes",       // Change this!
-        path: "index.html",            // The name of this file
-        branch: "main"                 // Usually 'main' or 'master'
+        owner: "coroiic",
+        repo: "hnl-canes",
+        path: "index.html",
+        branch: "main"
     };
 
-    /* ---------------------------------------------------------
-       DATA STORAGE
-    --------------------------------------------------------- */
     let TEAM_DATA = {
-        lines: { first: "Rowblox_Lols - LucaskFortnite", second: "Kreid - AlbertV05", goalie: "Coroiic" },
+        lines: { first: "Rowblox_Lols - LucaskFortnite", second: "Kreid - AlbertV05", goalie: "TBD" },
         scores: [
             { opp: "WSH Capitals", res: "1-0 W" },
             { opp: "PIT Penguins", res: "5-1 L" },
@@ -103,61 +127,104 @@
         news: [{ h: "S45 Hub Live", b: "The official Hurricanes HNL hub is now online." }]
     };
 
+    let selectedPlayerIndex = null;
+
     /* ---------------------------------------------------------
-       GITHUB SAVING LOGIC
+       CORE FUNCTIONS
+    --------------------------------------------------------- */
+    function openPlayerActions(index) {
+        selectedPlayerIndex = index;
+        const player = TEAM_DATA.roster[index];
+        document.getElementById('modalPlayerName').innerText = player.name;
+        document.getElementById('modalPlayerPos').innerText = `Position: ${player.pos}`;
+        document.getElementById('playerModal').showModal();
+    }
+
+    // Role Logic
+    function updateRole(tag) {
+        let name = TEAM_DATA.roster[selectedPlayerIndex].name;
+        // Clean existing tags
+        name = name.replace(/\[C\]|\[AC\]/g, "").trim();
+        // Add new tag if provided
+        TEAM_DATA.roster[selectedPlayerIndex].name = tag ? `${name} ${tag}` : name;
+        finishAction("Role Updated");
+    }
+
+    // Trade Logic
+    function triggerTrade() {
+        const player = TEAM_DATA.roster[selectedPlayerIndex];
+        if (confirm(`Move ${player.name} to the Trade Log?`)) {
+            // Remove from roster
+            TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
+            // Add to trades (remove placeholder if first trade)
+            if (TEAM_DATA.trades[0].includes("🚨")) TEAM_DATA.trades = [];
+            TEAM_DATA.trades.unshift(`🔄 TRADE: ${player.name} (${player.pos}) has been moved.`);
+            finishAction("Player Traded");
+        }
+    }
+
+    // Cut Logic
+    function triggerCut() {
+        const code = prompt("Enter GM Code (999JUICEWRLD) to confirm cut:");
+        if (code === "999JUICEWRLD") {
+            const player = TEAM_DATA.roster[selectedPlayerIndex];
+            TEAM_DATA.roster.splice(selectedPlayerIndex, 1);
+            finishAction(`${player.name} Released`);
+        } else if (code !== null) {
+            alert("Invalid Code.");
+        }
+    }
+
+    function finishAction(msg) {
+        document.getElementById('playerModal').close();
+        renderRoster();
+        renderTrades(); // Update trades tab too
+        saveToGitHub();
+    }
+
+    /* ---------------------------------------------------------
+       GITHUB SYNC
     --------------------------------------------------------- */
     async function saveToGitHub() {
-        const token = prompt("Enter GitHub Personal Access Token to sync changes:");
-        if (!token) return alert("Save cancelled. Changes will disappear on refresh.");
+        const token = prompt("Syncing changes... Enter GitHub Token:");
+        if (!token) return;
 
         const statusEl = document.getElementById('saveStatus');
         statusEl.style.display = 'block';
 
         try {
-            // 1. Get the current file's SHA (GitHub needs this to update)
             const getUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
             const response = await fetch(getUrl);
             const fileData = await response.json();
             const sha = fileData.sha;
 
-            // 2. Prepare the new file content
-            // We take the current HTML and replace the OLD TEAM_DATA with the NEW TEAM_DATA
             let currentHTML = decodeURIComponent(escape(atob(fileData.content)));
             const dataRegex = /let TEAM_DATA = \{[\s\S]*?\};/;
             const newDataString = `let TEAM_DATA = ${JSON.stringify(TEAM_DATA, null, 4)};`;
             const updatedHTML = currentHTML.replace(dataRegex, newDataString);
 
-            // 3. Push back to GitHub
             const putResponse = await fetch(getUrl, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: `Admin: Cut player from roster`,
+                    message: "GM Action: Roster Updated",
                     content: btoa(unescape(encodeURIComponent(updatedHTML))),
                     sha: sha,
                     branch: GITHUB_CONFIG.branch
                 })
             });
 
-            if (putResponse.ok) {
-                alert("SUCCESS: Roster updated on GitHub! It may take 1-2 minutes for the site to refresh.");
-            } else {
-                const err = await putResponse.json();
-                throw new Error(err.message);
-            }
+            if (putResponse.ok) alert("GitHub Updated Successfully!");
+            else throw new Error("Sync Failed");
         } catch (error) {
-            console.error(error);
-            alert("FAILED TO SAVE: " + error.message);
+            alert("Error: " + error.message);
         } finally {
             statusEl.style.display = 'none';
         }
     }
 
     /* ---------------------------------------------------------
-       UI LOGIC
+       UI RENDERING
     --------------------------------------------------------- */
     function showTab(id) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -171,46 +238,32 @@
         rList.innerHTML = "";
         TEAM_DATA.roster.forEach((r, index) => {
             rList.innerHTML += `
-                <div class="list-item" style="cursor: pointer;" onclick="cutPlayer(${index})">
+                <div class="list-item" onclick="openPlayerActions(${index})">
                     <span>${r.name}</span>
                     <span class="tag">${r.pos}</span>
                 </div>`;
         });
     }
 
-    async function cutPlayer(index) {
-        const player = TEAM_DATA.roster[index];
-        const code = prompt(`Cut ${player.name}?\nEnter Authorization Code:`);
-
-        if (code === "999JUICEWRLD") {
-            TEAM_DATA.roster.splice(index, 1);
-            renderRoster();
-            // Trigger the GitHub Save
-            await saveToGitHub();
-        } else if (code !== null) {
-            alert("Invalid Code.");
-        }
+    function renderTrades() {
+        const tList = document.getElementById('tradesList');
+        tList.innerHTML = "";
+        TEAM_DATA.trades.forEach(t => {
+            tList.innerHTML += `<div class="list-item">${t}</div>`;
+        });
     }
 
     function init() {
         document.getElementById('l1').innerText = TEAM_DATA.lines.first;
         document.getElementById('l2').innerText = TEAM_DATA.lines.second;
         document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
-
         const sList = document.getElementById('scoresList');
         sList.innerHTML = "";
         TEAM_DATA.scores.forEach(s => {
             sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`;
         });
-
         renderRoster();
-
-        const tList = document.getElementById('tradesList');
-        tList.innerHTML = "";
-        TEAM_DATA.trades.forEach(t => {
-            tList.innerHTML += `<div class="list-item">${t}</div>`;
-        });
-
+        renderTrades();
         const nList = document.getElementById('newsList');
         nList.innerHTML = "";
         TEAM_DATA.news.forEach(n => {
