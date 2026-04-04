@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HNL S45 | Carolina Hurricanes Central</title>
     <style>
-        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); }
+        :root { --canes-red: #cc0000; --canes-black: #000000; --canes-silver: #a2aaad; --glass: rgba(255, 255, 255, 0.1); --win: #2ecc71; --loss: #e74c3c; }
         body { background-color: var(--canes-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; background-image: radial-gradient(circle at top right, #330000 0%, #000000 100%); min-height: 100vh; }
         header { background: linear-gradient(90deg, #000, var(--canes-red)); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--canes-silver); }
         nav { display: flex; background: #111; padding: 0 50px; gap: 10px; border-bottom: 1px solid #333; overflow-x: auto; }
@@ -18,11 +18,9 @@
         .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
         .tag { background: #cc0000; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px; }
         h2 { border-left: 4px solid var(--canes-red); padding-left: 15px; text-transform: uppercase; font-size: 1.2rem; margin-bottom: 20px; }
-        
-        /* Stats Styling */
         .stats-grid { display: flex; gap: 15px; font-size: 0.85rem; color: var(--canes-silver); }
         .stat-val { color: white; font-weight: bold; margin-left: 3px; }
-        .player-info { display: flex; align-items: center; }
+        .res-w { color: var(--win); } .res-l { color: var(--loss); }
     </style>
 </head>
 <body>
@@ -51,7 +49,7 @@
             <p><strong>2ND:</strong> <span id="l2" style="color:var(--canes-silver)"></span></p>
             <p><strong>G:</strong> <span id="lg" style="color:var(--canes-silver)"></span></p>
         </div>
-        <h2>Player Stats</h2>
+        <h2>Active Roster</h2>
         <div id="rosterList" class="card"></div>
     </section>
 
@@ -67,13 +65,10 @@
 </div>
 
 <script>
-    /* ---------------------------------------------------------
-       ADMIN: EDIT YOUR DATA HERE
-    --------------------------------------------------------- */
     const TEAM_DATA = {
         lines: { 
             first: "Rowblox_Lols, LucaskFortnite, Minyglato", 
-            second: "albertv05, whospolisuis, kevvyfr" 
+            second: "albertv05, whospolisuis, kevvyfr", // Fixed missing comma
             goalie: "Coroiic" 
         },
         scores: [
@@ -83,29 +78,23 @@
             { opp: "NY Rangers", res: "5-1 L" }
         ],
         roster: [
-            // GOALIE STATS: Use gaa, sv, and rec
             { name: "Coroiic [C]", pos: "G", gaa: "1.67", sv: ".880", rec: "1-3-0" },
-            
-            // PLAYER STATS: Use g, a, pts, blk
-            { name: "Rowblox_Lols [AC]", pos: "C", g: 1, a: 0, pts: 1, blk: 2 },
-            { name: "LucaskFortnite [AC]", pos: "W", g: 0, a: 1, pts: 1, blk: 1 },
-            { name: "TTV_Demolisher", pos: "D", g: 0, a: 0, pts: 0, blk: 7 },
-            { name: "Lobsty", pos: "D", g: 0, a: 0, pts: 0, blk: 4 },
-            { name: "Minyglato", pos: "D", g: 0, a: 0, pts: 0, blk: 0 },
-            { name: "AlbertV05", pos: "W", g: 0, a: 0, pts: 0, blk: 0 },
-            { name: "CrusaderPenguin", pos: "D", g: 0, a: 0, pts: 0, blk: 0 },
-            { name: "KevvyFr", pos: "D", g: 0, a: 0, pts: 0, blk: 7 }, 
-            { name: "crabbyNT", pos: "C", g: 0, a: 0, pts: 0, blk: 0 }
+            { name: "Rowblox_Lols [AC]", pos: "C", g: 1, a: 0, blk: 2 }, // pts calculated automatically now
+            { name: "LucaskFortnite [AC]", pos: "W", g: 0, a: 1, blk: 1 },
+            { name: "TTV_Demolisher", pos: "D", g: 0, a: 0, blk: 7 },
+            { name: "Lobsty", pos: "D", g: 0, a: 0, blk: 4 },
+            { name: "Minyglato", pos: "D", g: 0, a: 0, blk: 0 },
+            { name: "AlbertV05", pos: "W", g: 0, a: 0, blk: 0 },
+            { name: "CrusaderPenguin", pos: "D", g: 0, a: 0, blk: 0 },
+            { name: "KevvyFr", pos: "D", g: 0, a: 0, blk: 7 }, 
+            { name: "crabbyNT", pos: "C", g: 0, a: 0, blk: 0 }
         ],
         trades: [ "PIT sends: Minyglato", "CAR sends: Kreid" ],
         news: [
-            { h: "Defensive Changes", b: "The Carolina Hurricanes have acquired top-pair defenseman minyglato from the Pittsburgh Penguins in exchange for forward Kreid. After an extensive scouting period, the Hurricanes' front office identified minyglato as the cornerstone piece needed to solidify their blue line for Season 45" } 
+            { h: "Defensive Changes", b: "The Carolina Hurricanes have acquired top-pair defenseman minyglato from the Pittsburgh Penguins in exchange for forward Kreid." } 
         ]
     };
 
-    /* ---------------------------------------------------------
-       CORE LOGIC
-    --------------------------------------------------------- */
     function showTab(id) {
         const tabs = document.getElementsByClassName('tab-content');
         const buttons = document.querySelectorAll('nav button');
@@ -120,60 +109,35 @@
         document.getElementById('l2').innerText = TEAM_DATA.lines.second;
         document.getElementById('lg').innerText = TEAM_DATA.lines.goalie;
 
-        // Scores
         const sList = document.getElementById('scoresList');
         sList.innerHTML = "";
         TEAM_DATA.scores.forEach(s => {
-            sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong>${s.res}</strong></div>`;
+            const isWin = s.res.includes("W");
+            const resClass = isWin ? "res-w" : "res-l";
+            sList.innerHTML += `<div class="list-item"><span>vs ${s.opp}</span><strong class="${resClass}">${s.res}</strong></div>`;
         });
 
-        // Roster & Stats Logic
         const rList = document.getElementById('rosterList');
         rList.innerHTML = "";
         TEAM_DATA.roster.forEach(r => {
             let statsHtml = "";
-            
             if (r.pos === "G") {
-                // Template for Goalie Stats
-                statsHtml = `
-                    <div class="stats-grid">
-                        <span>GAA: <span class="stat-val">${r.gaa || '0.00'}</span></span>
-                        <span>SV%: <span class="stat-val">${r.sv || '.000'}</span></span>
-                        <span>REC: <span class="stat-val">${r.rec || '0-0-0'}</span></span>
-                    </div>`;
+                statsHtml = `<div class="stats-grid"><span>GAA: <span class="stat-val">${r.gaa}</span></span><span>SV%: <span class="stat-val">${r.sv}</span></span><span>REC: <span class="stat-val">${r.rec}</span></span></div>`;
             } else {
-                // Template for Skater Stats
-                statsHtml = `
-                    <div class="stats-grid">
-                        <span>G: <span class="stat-val">${r.g || 0}</span></span>
-                        <span>A: <span class="stat-val">${r.a || 0}</span></span>
-                        <span>P: <span class="stat-val">${r.pts || 0}</span></span>
-                        <span>BLK: <span class="stat-val">${r.blk || 0}</span></span>
-                    </div>`;
+                const totalPoints = (r.g || 0) + (r.a || 0); // AUTO POINTS
+                statsHtml = `<div class="stats-grid"><span>G: <span class="stat-val">${r.g || 0}</span></span><span>A: <span class="stat-val">${r.a || 0}</span></span><span>P: <span class="stat-val">${totalPoints}</span></span><span>BLK: <span class="stat-val">${r.blk || 0}</span></span></div>`;
             }
-
-            rList.innerHTML += `
-                <div class="list-item">
-                    <div class="player-info">
-                        <strong>${r.name}</strong> <span class="tag">${r.pos}</span>
-                    </div>
-                    ${statsHtml}
-                </div>`;
+            rList.innerHTML += `<div class="list-item"><div><strong>${r.name}</strong><span class="tag">${r.pos}</span></div>${statsHtml}</div>`;
         });
 
-        // Trades
         const tList = document.getElementById('tradesList');
         tList.innerHTML = "";
         TEAM_DATA.trades.forEach(t => { tList.innerHTML += `<div class="list-item">${t}</div>`; });
 
-        // News
         const nList = document.getElementById('newsList');
         nList.innerHTML = "";
-        TEAM_DATA.news.forEach(n => {
-            nList.innerHTML += `<div class="card"><h3>${n.h}</h3><p>${n.b}</p></div>`;
-        });
+        TEAM_DATA.news.forEach(n => { nList.innerHTML += `<div class="card"><h3>${n.h}</h3><p>${n.b}</p></div>`; });
     }
-
     init();
 </script>
 </body>
