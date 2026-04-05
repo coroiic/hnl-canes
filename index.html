@@ -478,9 +478,9 @@
 <script>
 const DATA = {
   lines: {
-    first:  "Rowblox_Lols · LucaskFortnite · alex ",
+    first:  "Rowblox_Lols · LucaskFortnite · alex",
     second: "albertv05 · ttv_demolisher · kevvyfr",
-    third: "alee - savzy - crabby"
+    third:  "alee · savzy · crabby",
     goalie: "Coroiic"
   },
   scores: [
@@ -489,7 +489,7 @@ const DATA = {
     { opp: "OTT Senators",  res: "4-0 L" },
     { opp: "NY Rangers",    res: "5-1 L" },
     { opp: "WPG Jets",      res: "3-2 L" },
-    { opp: "MTL Canadiens", res: "5-0 L"}
+    { opp: "MTL Canadiens", res: "5-0 L" }
   ],
   roster: [
     { name: "Coroiic",         cap: "C",  pos: "G", gaa: "3.00", sv: ".867", rec: "1-4-0" },
@@ -548,6 +548,7 @@ function init() {
   document.getElementById('linesBlock').innerHTML = `
     <div class="line-row"><span class="line-label">1ST</span><span class="line-players">${DATA.lines.first}</span></div>
     <div class="line-row"><span class="line-label">2ND</span><span class="line-players">${DATA.lines.second}</span></div>
+    <div class="line-row"><span class="line-label">3RD</span><span class="line-players">${DATA.lines.third}</span></div>
     <div class="line-row"><span class="line-label">G</span><span class="line-players">${DATA.lines.goalie}</span></div>`;
 
   /* Scores */
